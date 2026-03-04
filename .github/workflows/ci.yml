@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore UnityMCP.Tests~/UnityMCP.Tests.csproj
+
+      - name: Format
+        run: dotnet format UnityMCP~/UnityMCP.csproj --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build UnityMCP~/UnityMCP.csproj --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test UnityMCP.Tests~/UnityMCP.Tests.csproj --configuration Release --verbosity normal

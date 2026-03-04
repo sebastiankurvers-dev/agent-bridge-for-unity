@@ -1,0 +1,41 @@
+# .NET build artifacts
+UnityMCP~/bin/
+UnityMCP~/obj/
+UnityMCP.Tests~/bin/
+UnityMCP.Tests~/obj/
+
+# Unity
+Library/
+Temp/
+Logs/
+Build/
+UserSettings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vs/
+.vscode/
+*.user
+*.suo
+*.swp
+
+# Build output
+*.log
+*.nupkg
+publish/
+
+# Claude Code
+.claude/
+
+# Secrets / credentials
+.env*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.*
+secrets.*
