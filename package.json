@@ -2,7 +2,7 @@
   "name": "com.sebastiankurvers.agent-bridge",
   "version": "1.0.0",
   "displayName": "Agent Bridge for Unity",
-  "description": "AI agent infrastructure for Unity Editor — 243 MCP tools for scene building, visual validation, and automated workflows",
+  "description": "AI agent infrastructure for Unity Editor — 248 MCP tools for scene building, visual validation, and automated workflows",
   "unity": "6000.0",
   "type": "tool",
   "hideInEditor": false,

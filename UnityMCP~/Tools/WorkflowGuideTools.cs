@@ -169,7 +169,7 @@ Examples:
         new Workflow(
             "Scene Building",
             "Create and modify scenes with objects, lights, and spatial layout.",
-            new[] { "scene", "build", "create", "layout", "place", "spawn", "object", "primitive", "cube", "sphere", "compound", "tree", "lantern", "fence", "steps", "building", "rock" },
+            new[] { "scene", "build", "create", "layout", "place", "spawn", "object", "primitive", "cube", "sphere", "compound", "tree", "lantern", "fence", "steps", "building", "rock", "floating", "grounding", "sunk", "snap" },
             new[]
             {
                 "unity_create_compound_shape(preset, ...) — One-call compound objects: tree, lantern, steps, fence, rock_cluster, simple_building (PREFERRED for scene reconstruction)",
@@ -184,6 +184,10 @@ Examples:
                 "unity_modify_gameobject(instanceId, ...) — Change name, tag, layer, static, position, rotation, scale",
                 "unity_group_objects(instanceIds, name) — Group multiple objects under a new parent",
                 "unity_snap_objects(sourceId, targetId, snapMode) — Snap objects together",
+                "unity_audit_overlaps(rootInstanceId) — Detect mesh/bounds intersections after placement",
+                "unity_resolve_overlaps(rootInstanceId) — Auto-nudge overlapping objects apart",
+                "unity_audit_grounding(rootInstanceId) — Detect floating/sunk objects after placement",
+                "unity_snap_to_ground(rootInstanceId) — Snap floating objects to terrain/ground",
                 "unity_screenshot(viewType) — Verify results visually"
             },
             new[]
@@ -191,6 +195,9 @@ Examples:
                 "BUILD ORDER: Structure first (terrain, major objects, camera) → then materials/lighting → then fine details. Do NOT tweak colors until composition matches.",
                 "Use unity_create_compound_shape for trees, lanterns, steps, fences, rocks, buildings — much better than manually composing primitives",
                 "Use unity_spawn_batch for 3+ objects — much faster than individual spawns",
+                "OVERLAP CHECK: After placing multiple objects, run unity_audit_overlaps(rootInstanceId) to detect clipping. Then unity_resolve_overlaps to auto-fix, or manually adjust positions.",
+                "GROUNDING CHECK: After placement, run unity_audit_grounding(rootInstanceId) to catch floating or sunk objects. Use unity_snap_to_ground to fix. Run AFTER overlap resolve to avoid re-floating.",
+                "ROOF CLIPPING: When placing buildings close together, set roofOverhang=0 to prevent roofs from clipping through neighboring walls. Default overhang (0.02) is small but still clips in tight village layouts.",
                 "ROOF CONSTRUCTION: When building gable roofs manually with two angled cubes, ALWAYS add a ridge beam at the peak — the panel thickness creates a V-gap where they meet. Place a small cube at (0, wallHeight+roofHeight, 0) spanning the full depth.",
                 "For complex procedural scenes, use unity_execute_csharp with unity_register_execute_helpers to define reusable factory functions",
                 "Always verify placement with unity_screenshot after building",
@@ -268,14 +275,20 @@ Examples:
                 "unity_get_physics_settings() — Read gravity, solver iterations, etc.",
                 "unity_set_physics_settings(gravity, ...) — Change physics configuration",
                 "unity_raycast(origin, direction) — Cast a ray and get hit info",
-                "unity_raycast_coverage_check(rootInstanceId) — Grid raycast for gap detection"
+                "unity_raycast_coverage_check(rootInstanceId) — Grid raycast for gap detection",
+                "unity_audit_overlaps(rootInstanceId) — Detect mesh/bounds intersections between objects",
+                "unity_resolve_overlaps(rootInstanceId, keepOnTerrain) — Auto-nudge overlapping objects apart",
+                "unity_audit_grounding(rootInstanceId) — Detect floating/sunk objects",
+                "unity_snap_to_ground(rootInstanceId) — Snap floating objects to terrain/ground"
             },
             new[]
             {
                 "Always add a Collider AND a Rigidbody for physics-driven objects",
                 "Use isKinematic=true for objects moved by code (not physics forces)",
                 "Constraints use comma-separated names: \"FreezeRotationX,FreezeRotationZ\"",
-                "unity_raycast requires a specific origin+direction; use unity_raycast_coverage_check for broad testing"
+                "unity_raycast requires a specific origin+direction; use unity_raycast_coverage_check for broad testing",
+                "unity_audit_overlaps uses Bounds.Intersects (no colliders needed) + Physics.ComputePenetration (more accurate, needs colliders)",
+                "GROUNDING: After resolving overlaps, run unity_audit_grounding to catch objects that were pushed into the air. Use unity_snap_to_ground to fix."
             },
             "  # Set up a physics object\n  unity_configure_rigidbody(instanceId=123, mass=2, useGravity=true, constraints=\"FreezeRotationX,FreezeRotationZ\")\n  unity_configure_collider(instanceId=123, type=\"Box\")"
         ),
@@ -434,7 +447,7 @@ Examples:
         new Workflow(
             "Debugging & Diagnostics",
             "Find and fix rendering issues, missing objects, and scene problems.",
-            new[] { "debug", "diagnose", "invisible", "missing", "black", "magenta", "error", "console", "audit", "broken" },
+            new[] { "debug", "diagnose", "invisible", "missing", "black", "magenta", "error", "console", "audit", "broken", "floating", "grounding", "sunk" },
             new[]
             {
                 "unity_get_console() — Read Unity console errors/warnings",
@@ -443,6 +456,11 @@ Examples:
                 "unity_get_hierarchy_renderers(instanceId) — Check material assignments on a hierarchy",
                 "unity_audit_scene_lighting() — Verify lighting health (too dark, over-exposed, etc.)",
                 "unity_camera_visibility_audit() — Check which objects are visible/occluded from camera",
+                "unity_audit_overlaps(rootInstanceId) — Detect mesh/bounds intersections between objects",
+                "unity_resolve_overlaps(rootInstanceId) — Auto-nudge overlapping objects apart",
+                "unity_audit_grounding(rootInstanceId) — Detect floating/sunk objects",
+                "unity_snap_to_ground(rootInstanceId) — Snap floating objects to terrain/ground",
+                "unity_identify_objects_at_points(points) — Identify objects at screen positions (from compare hotspots)",
                 "unity_run_scene_quality_checks() — Comprehensive scene health validation",
                 "unity_get_compilation_errors() — Check for script errors",
                 "unity_screenshot(viewType=\"scene\") — Visual verification",
@@ -453,7 +471,10 @@ Examples:
                 "Object invisible? Check: (1) unity_audit_renderers for null materials, (2) unity_camera_visibility_audit for frustum/occlusion, (3) unity_get_components to verify renderer exists and is enabled",
                 "Magenta/pink = missing shader. Use unity_validate_material to check pipeline compatibility",
                 "Black object = no lights or normals flipped. Use unity_audit_scene_lighting",
-                "Use unity_multi_pov_snapshot to verify objects aren't clipping or hidden behind other geometry"
+                "Use unity_multi_pov_snapshot to verify objects aren't clipping or hidden behind other geometry",
+                "Objects clipping through each other? Use unity_audit_overlaps to detect, then unity_resolve_overlaps to auto-fix",
+                "Objects floating or sunk into ground? Use unity_audit_grounding to detect, then unity_snap_to_ground to fix. Common after scatter/batch operations.",
+                "Compare hotspot shows a problem region? Use unity_identify_objects_at_points with the hotspot coordinates to find which objects need fixing"
             },
             ""
         ),
@@ -691,6 +712,8 @@ Examples:
             {
                 "PASS 1 — LAYOUT: Set up terrain/ground, skybox, camera position. Get the broad composition right first.",
                 "PASS 2 — MAJOR SHAPES: Place main objects using unity_create_compound_shape (trees, buildings, lanterns, steps, fences, rocks). Match positions and sizes to reference.",
+                "PASS 2.5 — OVERLAP CHECK: Run unity_audit_overlaps(rootInstanceId) to detect clipping between placed objects. Use unity_resolve_overlaps to auto-fix before camera matching.",
+                "PASS 2.7 — GROUNDING CHECK: Run unity_audit_grounding(rootInstanceId) to catch floating or sunk objects. Use unity_snap_to_ground to fix. Run AFTER overlap resolve.",
                 "PASS 3 — CAMERA: Match camera angle, FOV, and framing with unity_set_scene_view_camera. Take screenshot and compare — structuralSimilarity should be >0.5 before proceeding.",
                 "PASS 4 — LIGHTING: Add directional light (sun), point/spot lights. Match the reference's light direction and color temperature.",
                 "PASS 5 — MATERIALS: Adjust colors, metallic, smoothness. Create procedural textures for terrain. Only now tweak visual appearance.",
@@ -702,6 +725,10 @@ Examples:
                 "NEVER tweak colors/materials when structuralSimilarity is below 0.5 — fix composition first",
                 "Use compound shapes (tree, lantern, rock_cluster, etc.) instead of manual primitive composition",
                 "ROOF GAP: When building gable roofs with two angled cubes, always add a ridge beam — panel thickness creates a visible V-gap at the peak",
+                "ROOF CLIPPING in villages: Use roofOverhang=0 when buildings are close together to prevent roofs from cutting through neighboring walls",
+                "After placing objects, run unity_audit_overlaps to catch roof-wall clipping, tree-building intersections, etc. before wasting iterations on color tweaks",
+                "FLOATING OBJECTS: After scatter or batch placement, run unity_audit_grounding — objects often land at wrong Y. Use unity_snap_to_ground(rootInstanceId) to fix all at once.",
+                "When compare hotspots show problem regions, use unity_identify_objects_at_points with those coordinates to find the offending objects",
                 "If similarity plateaus for 3+ iterations, you're likely optimizing the wrong thing — check structuralSimilarity",
                 "Create a checkpoint before each major pass so you can rollback if needed",
                 "Camera position has the biggest single impact on similarity — match it early",

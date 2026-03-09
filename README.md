@@ -147,7 +147,7 @@ Open your MCP client from the Unity project directory. Tools are available immed
 
 ## Tool Coverage
 
-243 tools across scene building, terrain, particles, visual QA, automation, editor control, assets, and scripting. You don't need to learn them — your AI agent discovers and calls them as needed.
+248 tools across scene building, terrain, particles, visual QA, automation, editor control, assets, and scripting. You don't need to learn them — your AI agent discovers and calls them as needed.
 
 <details>
 <summary>Full tool breakdown</summary>
@@ -170,6 +170,7 @@ Open your MCP client from the Unity project directory. Tools are available immed
 | Terrain | 6 | Create, sculpt, paint texture layers, place trees |
 | Replay | 5 | Record, execute, compare — full state verification |
 | Checkpoints | 5 | Save/restore scene snapshots for rollback |
+| Spatial Audit | 7 | Overlap detection, grounding audit, snap-to-ground, object identification at screen points |
 | Physics | 5 | Rigidbody, colliders, physics settings, spatial queries |
 | Audio | 5 | Sources, mixers, listeners, spatial audio |
 | Play Mode | 5 | Enter/exit, wait, event polling |

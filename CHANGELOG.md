@@ -4,7 +4,7 @@
 
 Initial public release.
 
-- 243 MCP tools across 48 domains
+- 248 MCP tools across 49 domains
 - HTTP bridge between Unity Editor and MCP clients
 - Attribute-based route registration with `[BridgeRoute]`
 - Checkpoint/rollback system for safe scene mutations
