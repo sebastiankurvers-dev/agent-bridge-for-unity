@@ -60,6 +60,7 @@ namespace UnityAgentBridge
             public string roofType = "gable";  // gable, flat
             public float[] wallColor;       // [r,g,b]
             public float[] roofColor;       // [r,g,b]
+            public float roofOverhang = -1f; // 0 = flush, 0.05 = 5% overhang. -1 = auto (0.02)
         }
 
         [BridgeRoute("POST", "/compound-shape", Category = "objects", Description = "Create compound shape preset")]
@@ -399,6 +400,7 @@ namespace UnityAgentBridge
             float d = req.buildingDepth * s;
             float h = req.buildingHeight * s;
             float roofH = req.roofHeight * s;
+            float overhang = req.roofOverhang >= 0f ? Mathf.Clamp01(req.roofOverhang) : 0.02f;
             int parts = 0;
 
             // Walls (single cube)
@@ -420,7 +422,7 @@ namespace UnityAgentBridge
                 roof.name = "Roof";
                 roof.transform.SetParent(root.transform, false);
                 roof.transform.localPosition = new Vector3(0, h + 0.05f * s, 0);
-                roof.transform.localScale = new Vector3(w * 1.1f, 0.1f * s, d * 1.1f);
+                roof.transform.localScale = new Vector3(w * (1f + overhang * 2f), 0.1f * s, d * (1f + overhang * 2f));
                 ApplyColor(roof, roofCol, 0.1f, 0.3f);
                 parts++;
             }
@@ -438,7 +440,7 @@ namespace UnityAgentBridge
                 roofLeft.transform.SetParent(root.transform, false);
                 roofLeft.transform.localPosition = new Vector3(-w / 4f, h + roofH / 2f, 0);
                 roofLeft.transform.localRotation = Quaternion.Euler(0, 0, roofSlope);
-                roofLeft.transform.localScale = new Vector3(roofLen + overExtend, roofThickness, d * 1.05f);
+                roofLeft.transform.localScale = new Vector3(roofLen + overExtend, roofThickness, d * (1f + overhang));
                 ApplyColor(roofLeft, roofCol, 0.1f, 0.3f);
                 parts++;
 
@@ -447,7 +449,7 @@ namespace UnityAgentBridge
                 roofRight.transform.SetParent(root.transform, false);
                 roofRight.transform.localPosition = new Vector3(w / 4f, h + roofH / 2f, 0);
                 roofRight.transform.localRotation = Quaternion.Euler(0, 0, -roofSlope);
-                roofRight.transform.localScale = new Vector3(roofLen + overExtend, roofThickness, d * 1.05f);
+                roofRight.transform.localScale = new Vector3(roofLen + overExtend, roofThickness, d * (1f + overhang));
                 ApplyColor(roofRight, roofCol, 0.1f, 0.3f);
                 parts++;
 
@@ -456,7 +458,7 @@ namespace UnityAgentBridge
                 ridge.name = "Ridge";
                 ridge.transform.SetParent(root.transform, false);
                 ridge.transform.localPosition = new Vector3(0, h + roofH, 0);
-                ridge.transform.localScale = new Vector3(roofThickness * 2f, roofThickness * 1.5f, d * 1.08f);
+                ridge.transform.localScale = new Vector3(roofThickness * 2f, roofThickness * 1.5f, d * (1f + overhang + 0.03f));
                 ApplyColor(ridge, roofCol * 0.85f, 0.1f, 0.3f);
                 parts++;
 
@@ -485,7 +487,7 @@ namespace UnityAgentBridge
             floor.name = "Floor";
             floor.transform.SetParent(root.transform, false);
             floor.transform.localPosition = new Vector3(0, -0.025f * s, 0);
-            floor.transform.localScale = new Vector3(w * 1.1f, 0.05f * s, d * 1.1f);
+            floor.transform.localScale = new Vector3(w * (1f + overhang * 2f), 0.05f * s, d * (1f + overhang * 2f));
             ApplyColor(floor, wallCol * 0.8f, 0f, 0.4f);
             parts++;
 

@@ -34,11 +34,15 @@ namespace UnityAgentBridge
             if (!string.IsNullOrWhiteSpace(searchFilter))
             {
                 var needle = searchFilter.Trim();
+                // Also try underscore-to-hyphen variant so MCP tool names (unity_audit_overlaps)
+                // match route paths (/spatial/audit-overlaps)
+                var needleAlt = needle.Contains('_') ? needle.Replace('_', '-') : null;
                 filtered = filtered.Where(e =>
                     e.path.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0
                     || e.method.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0
                     || e.category.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0
-                    || e.description.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0);
+                    || e.description.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0
+                    || (needleAlt != null && e.path.IndexOf(needleAlt, StringComparison.OrdinalIgnoreCase) >= 0));
             }
 
             if (maxResults > 0)

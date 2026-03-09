@@ -325,7 +325,7 @@ namespace UnityAgentBridge
                 }
 
                 // Set parent of group if specified
-                if (request.parentId > 0)
+                if (request.parentId != 0)
                 {
                     var parent = EditorUtility.EntityIdToObject(request.parentId) as GameObject;
                     if (parent != null)
@@ -400,7 +400,7 @@ namespace UnityAgentBridge
                 }
 
                 Transform parentTransform = null;
-                if (request.parentId > 0)
+                if (request.parentId != 0)
                 {
                     var parent = EditorUtility.EntityIdToObject(request.parentId) as GameObject;
                     if (parent != null) parentTransform = parent.transform;
