@@ -161,7 +161,8 @@ public static class PrimitiveTools
         [Description("Building: roof height (default 1.5).")] float roofHeight = 1.5f,
         [Description("Building: roof type 'gable' or 'flat' (default gable).")] string roofType = "gable",
         [Description("Building: wall color [r,g,b].")] float[]? wallColor = null,
-        [Description("Building: roof color [r,g,b].")] float[]? roofColor = null)
+        [Description("Building: roof color [r,g,b].")] float[]? roofColor = null,
+        [Description("Building: roof overhang fraction (0 = flush with walls, 0.1 = 10% overhang). Default 0.02. Set to 0 for buildings placed close together to prevent roof clipping.")] float roofOverhang = -1f)
     {
         var validPresets = new[] { "tree", "lantern", "steps", "fence", "rock_cluster", "simple_building" };
         if (string.IsNullOrWhiteSpace(preset) ||
@@ -228,6 +229,7 @@ public static class PrimitiveTools
         if (roofType != "gable") request["roofType"] = roofType;
         if (wallColor != null) request["wallColor"] = wallColor;
         if (roofColor != null) request["roofColor"] = roofColor;
+        if (roofOverhang >= 0f) request["roofOverhang"] = roofOverhang;
 
         return await client.CreateCompoundShapeAsync(request);
     }

@@ -548,6 +548,31 @@ public partial class UnityClient
         return await PostAsync(AppendTimeoutQuery("/spatial/coverage-check", timeoutMs), data);
     }
 
+    public async Task<string> AuditOverlapsAsync(object data, int? timeoutMs = null)
+    {
+        return await PostAsync(AppendTimeoutQuery("/spatial/audit-overlaps", timeoutMs), data);
+    }
+
+    public async Task<string> ResolveOverlapsAsync(object data, int? timeoutMs = null)
+    {
+        return await PostAsyncNoRetry(AppendTimeoutQuery("/spatial/resolve-overlaps", timeoutMs), data);
+    }
+
+    public async Task<string> IdentifyObjectsAtPointsAsync(object data, int? timeoutMs = null)
+    {
+        return await PostAsync(AppendTimeoutQuery("/spatial/identify-at-points", timeoutMs), data);
+    }
+
+    public async Task<string> AuditGroundingAsync(object data, int? timeoutMs = null)
+    {
+        return await PostAsync(AppendTimeoutQuery("/spatial/audit-grounding", timeoutMs), data);
+    }
+
+    public async Task<string> SnapToGroundAsync(object data, int? timeoutMs = null)
+    {
+        return await PostAsyncNoRetry(AppendTimeoutQuery("/spatial/snap-to-ground", timeoutMs), data);
+    }
+
     #endregion
 
     #region Material Validation Operations
